@@ -12,8 +12,9 @@ import uuidv4 from 'uuid';
 import { flattenArr, objToArr } from './utils/helper';
 import fileHelper from './utils/fileHelper';
 import FileStore from './utils/store';
+import useIpcRenderer from './hooks/useIpcRenderer'
 const { join, basename, extname, dirname } = window.require('path')
-const { remote } = window.require('electron')
+const { remote, ipcRenderer } = window.require('electron')
 
 const fileStore = new FileStore('name', 'files Data')
 
@@ -61,11 +62,13 @@ function App() {
   }
 
   const fileChange = (fileId, val) => {
-    const newFiles = { ...files[fileId], body: val }
-    setFiles({ ...files, [fileId]: newFiles })
-
-    if ( !unsavedFileIds.includes(fileId) ) {
-      setUnsaveFileIds([ ...unsavedFileIds, fileId ])
+    if (val !== files[fileId].body) {
+      const newFiles = { ...files[fileId], body: val }
+      setFiles({ ...files, [fileId]: newFiles })
+  
+      if ( !unsavedFileIds.includes(fileId) ) {
+        setUnsaveFileIds([ ...unsavedFileIds, fileId ])
+      }
     }
   }
 
@@ -127,9 +130,11 @@ function App() {
 
   // 保存当前文件
   const saveCurrentFile = () => {
-    fileHelper.writeFile(activeFile.path, activeFile.body).then(() => {
-      setUnsaveFileIds(unsavedFileIds.filter(id => id !== activeFile.id))
-    })
+    if (activeFile) {
+      fileHelper.writeFile(activeFile.path, activeFile.body).then(() => {
+        setUnsaveFileIds(unsavedFileIds.filter(id => id !== activeFile.id))
+      })
+    }
   }
 
   // 导入文件
@@ -164,6 +169,20 @@ function App() {
       }
     })
   }
+
+  // 监听菜单事件
+  useIpcRenderer({
+    'create-new-file': () => {
+      fileCreate()
+    },
+    'import-file': () => {
+      importFiles()
+    },
+    'save-edit-file': () => {
+      saveCurrentFile()
+    }
+  })
+
 
   return (
     <div className="App container-fluid px-0">

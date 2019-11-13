@@ -14,14 +14,14 @@ const MdeEditer = ( { file, fileChange, saveCurrentFile } ) => {
             onChange={(val) => {fileChange(file.id, val)}}
             options={
               {
-                minHeight: '475px'
+                minHeight: '510px'
               }
             }
            ></SimpleMDE>
-          <button type="button" className="button-icon" onClick={ saveCurrentFile }>
+          {/* <button type="button" className="button-icon" onClick={ saveCurrentFile }>
               <FontAwesomeIcon title="保存" icon={ faSave }></FontAwesomeIcon>
               保存
-          </button>
+          </button> */}
         </>
     )
 }
